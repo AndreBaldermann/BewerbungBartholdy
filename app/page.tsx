@@ -1,103 +1,501 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Check,
+  ChevronRight,
+  Mail,
+  Download,
+  Sparkles,
+  Trophy,
+} from "lucide-react";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts";
+
+// --- App Data ---------------------------------------------------------------
+const QUIZ = [
+  {
+    q: "Wo habe ich die meiste Zeit gearbeitet?",
+    options: [
+      { label: "Hochschule/Universität", correct: true },
+      { label: "Start-up-Inkubator", correct: false },
+      { label: "Beratung ohne Lehre", correct: false },
+    ],
+    explain:
+      "Schwerpunkt in Lehre & Programmentwicklung – Verbindung von Wissenschaft & Praxis.",
+  },
+  {
+    q: "Welches Thema prägt meine Arbeit besonders?",
+    options: [
+      { label: "Prozess- & Qualitätsmanagement", correct: true },
+      { label: "Event-Marketing", correct: false },
+      { label: "Finanzprüfung", correct: false },
+    ],
+    explain:
+      "Praxisorientierte Qualität & kontinuierliche Verbesserung in Bildungsprogrammen.",
+  },
+];
+
+const SKILLS = [
+  { name: "Didaktik", target: "Projekt Lehrkonzepte" },
+  { name: "Digitalisierung", target: "EdTech/AI Piloten" },
+  { name: "Qualitätsmanagement", target: "Akkreditierung/QM" },
+  { name: "Prozessmanagement", target: "Curriculum-Redesign" },
+  { name: "KI", target: "Lernassistent/Analytics" },
+];
+
+const CASES = [
+  {
+    title: "Studiengang praxisnäher gestalten",
+    steps: [
+      "Ist-Analyse & Stakeholder-Interviews",
+      "Challenge-Based-Module entwickeln",
+      "Pilot durchführen & Feedback auswerten",
+      "Qualitätsschleife etablieren (PDSA)",
+    ],
+  },
+  {
+    title: "Digitales Lernformat aufbauen",
+    steps: [
+      "Use-Cases & Lernziele schärfen",
+      "Micro-Learning + KI-Coach prototypen",
+      "Learning Analytics definieren",
+      "Skalierung & Governance klären",
+    ],
+  },
+];
+
+// --- Helper -----------------------------------------------------------------
+const Screen = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    className="w-full max-w-4xl mx-auto"
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -12 }}
+    transition={{ duration: 0.25 }}
+  >
+    {children}
+  </motion.div>
+);
+
+function useProgress(total: number, current: number) {
+  return useMemo(
+    () => Math.round(((current + 1) / total) * 100),
+    [total, current]
+  );
+}
+
+// --- Main App ---------------------------------------------------------------
+export default function App() {
+  const [step, setStep] = useState(0); // 0..n-1 screens plus finish
+  const totalScreens = 5; // 0 Start, 1 Quiz, 2 Matching, 3 Motivation, 4 Case, 5 Finish
+  const progress = Math.round(
+    (Math.min(step, totalScreens) / totalScreens) * 100
+  );
+
+  const [quizIdx, setQuizIdx] = useState(0);
+  const [quizScore, setQuizScore] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const [matches, setMatches] = useState<Record<string, string>>({});
+  const [focusCase, setFocusCase] = useState<number | null>(null);
+
+  const goto = (n: number) => setStep(n);
+  const next = () => setStep((s) => Math.min(s + 1, totalScreens));
+  const prev = () => setStep((s) => Math.max(s - 1, 0));
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-slate-50 py-10 px-4">
+      <div className="max-w-5xl mx-auto mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-6 h-6" />
+          <h1 className="text-2xl font-semibold">Bewerbungs-Lernapp</h1>
+          <Badge variant="secondary" className="ml-2 rounded-2xl">
+            Prototyp
+          </Badge>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="w-64">
+          <Progress value={progress} />
+          <p className="text-xs text-slate-500 mt-1">
+            Fortschritt: {progress}%
+          </p>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {/* Step 0 – Start */}
+        {step === 0 && (
+          <Screen key="start">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Willkommen! 👋</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Schön, dass Sie da sind. In dieser kleinen App entdecken Sie
+                  meine Fähigkeiten, Motivation und Arbeitsweise – spielerisch
+                  und kompakt.
+                </p>
+                <ul className="grid md:grid-cols-3 gap-3 text-slate-700">
+                  <li className="p-3 rounded-2xl bg-white border">
+                    Quiz: Wer bin ich?
+                  </li>
+                  <li className="p-3 rounded-2xl bg-white border">
+                    Matching: Kompetenzen zu Projekten
+                  </li>
+                  <li className="p-3 rounded-2xl bg-white border">
+                    Mini-Case: Vorgehensweise live
+                  </li>
+                </ul>
+                <div className="flex gap-3">
+                  <Button onClick={next} className="rounded-2xl">
+                    Los geht’s <ChevronRight className="ml-2 w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => goto(3)}
+                    className="rounded-2xl"
+                  >
+                    Motivation zuerst
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 1 – Quiz */}
+        {step === 1 && (
+          <Screen key="quiz">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Level 1 – Wer bin ich?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">{QUIZ[quizIdx].q}</p>
+                <div className="grid gap-3">
+                  {QUIZ[quizIdx].options.map((o, i) => {
+                    const chosen = selected === o.label;
+                    const correctChoice = selected && o.correct && chosen;
+                    const wrongChoice = selected && !o.correct && chosen;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setSelected(o.label)}
+                        className={`text-left p-3 rounded-2xl border bg-white transition ${
+                          chosen
+                            ? o.correct
+                              ? "border-emerald-400"
+                              : "border-rose-300"
+                            : "hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{o.label}</span>
+                          {correctChoice && (
+                            <Check className="w-5 h-5 text-emerald-600" />
+                          )}
+                          {wrongChoice && (
+                            <span className="text-rose-500 text-sm">Nope</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selected && (
+                  <div className="space-y-4">
+                    <p className="text-slate-600">{QUIZ[quizIdx].explain}</p>
+                    <div className="flex gap-3">
+                      <Button
+                        className="rounded-2xl"
+                        onClick={() => {
+                          const chosen = QUIZ[quizIdx].options.find(
+                            (o) => o.label === selected
+                          );
+                          if (chosen?.correct)
+                            setQuizScore((s) => s + 1);
+                          setSelected(null);
+                          if (quizIdx < QUIZ.length - 1)
+                            setQuizIdx((i) => i + 1);
+                          else next();
+                        }}
+                      >
+                        Weiter
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="rounded-2xl"
+                        onClick={prev}
+                      >
+                        Zurück
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-xs text-slate-500">
+                  Punktestand: {quizScore} / {QUIZ.length}
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 2 – Matching */}
+        {step === 2 && (
+          <Screen key="match">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Level 2 – Kompetenzen matchen</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Ordnen Sie die Kompetenz dem passenden Projektfeld zu.
+                </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    {SKILLS.map((s) => (
+                      <div
+                        key={s.name}
+                        className="p-3 rounded-2xl bg-white border"
+                      >
+                        <div className="text-sm text-slate-500">Kompetenz</div>
+                        <div className="font-medium">{s.name}</div>
+                        <div className="mt-3">
+                          <Input
+                            placeholder="Ziel/Projekt eingeben …"
+                            value={matches[s.name] ?? ""}
+                            onChange={(e) =>
+                              setMatches({ ...matches, [s.name]: e.target.value })
+                            }
+                            className="rounded-2xl"
+                          />
+                          <div className="text-xs text-slate-400 mt-1">
+                            Tipp: „{s.target}“
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border">
+                    <div className="text-sm text-slate-500 mb-2">
+                      Kompetenz-Radar (Selbsteinschätzung)
+                    </div>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart
+                          data={SKILLS.map((s) => ({
+                            subject: s.name,
+                            A: 80,
+                          }))}
+                        >
+                          <PolarGrid />
+                          <PolarAngleAxis dataKey="subject" />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                          <Radar
+                            name="Kompetenz"
+                            dataKey="A"
+                            stroke="#334155"
+                            fill="#334155"
+                            fillOpacity={0.3}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-2">
+                      Visualisierung exemplarisch.
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button className="rounded-2xl" onClick={next}>
+                    <ChevronRight className="mr-2 w-4 h-4" />
+                    Weiter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl"
+                    onClick={prev}
+                  >
+                    Zurück
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 3 – Motivation */}
+        {step === 3 && (
+          <Screen key="motivation">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Motivation – Warum Hochschule?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Ich möchte meine Selbständigkeit bewusst beenden, um meine
+                  Expertise langfristig in einem Team einzubringen – mit
+                  Verantwortung, Kontinuität und messbarer Wirkung in Lehre &
+                  Programmentwicklung.
+                </p>
+                <ul className="grid md:grid-cols-3 gap-3">
+                  {[
+                    "Praxisnahe Curricula",
+                    "Innovative Lehrformate",
+                    "Qualität & Wirkung",
+                  ].map((t) => (
+                    <li
+                      key={t}
+                      className="p-3 rounded-2xl bg-white border flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex gap-3">
+                  <Button className="rounded-2xl" onClick={next}>
+                    Weiter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl"
+                    onClick={prev}
+                  >
+                    Zurück
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 4 – Case */}
+        {step === 4 && (
+          <Screen key="case">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Mini-Case – So gehe ich vor</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    {CASES.map((c, i) => (
+                      <button
+                        key={c.title}
+                        onClick={() => setFocusCase(i)}
+                        className={`w-full text-left p-4 rounded-2xl border bg-white ${
+                          focusCase === i
+                            ? "border-slate-800"
+                            : "hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="font-medium">{c.title}</div>
+                        <div className="text-xs text-slate-500">
+                          Klicken zum Anzeigen der Schritte
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border min-h-[220px]">
+                    {focusCase === null ? (
+                      <p className="text-slate-500">
+                        Bitte links einen Case wählen.
+                      </p>
+                    ) : (
+                      <ol className="list-decimal ml-5 space-y-2">
+                        {CASES[focusCase].steps.map((s) => (
+                          <li key={s}>{s}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button className="rounded-2xl" onClick={next}>
+                    Abschließen <Trophy className="ml-2 w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl"
+                    onClick={prev}
+                  >
+                    Zurück
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 5 – Finish */}
+        {step === 5 && (
+          <Screen key="finish">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Vielen Dank! 🎉</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Sie haben alle Level abgeschlossen. Falls Sie mögen, können
+                  Sie meine Kurzdaten exportieren oder mich direkt kontaktieren.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    className="rounded-2xl"
+                    onClick={() => exportProfile(matches, quizScore)}
+                  >
+                    <Download className="mr-2 w-4 h-4" /> Profil-Notizen
+                    exportieren (JSON)
+                  </Button>
+                  <a
+                    href="mailto:mail@bartholdy-qm.de"
+                    className="inline-flex"
+                  >
+                    <Button variant="secondary" className="rounded-2xl">
+                      <Mail className="mr-2 w-4 h-4" /> Kontakt aufnehmen
+                    </Button>
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+// --- Utilities --------------------------------------------------------------
+function exportProfile(matches: Record<string, string>, quizScore: number) {
+  const data = {
+    quizScore,
+    matches,
+    timestamp: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bewerbung-profile-notizen.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
