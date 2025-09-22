@@ -90,10 +90,17 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
+function useProgress(total: number, current: number) {
+  return useMemo(
+    () => Math.round(((current + 1) / total) * 100),
+    [total, current]
+  );
+}
+
 // --- Main App ---------------------------------------------------------------
 export default function App() {
-  const [step, setStep] = useState(0);
-  const totalScreens = 5;
+  const [step, setStep] = useState(0); // 0..n-1 screens plus finish
+  const totalScreens = 5; // 0 Start, 1 Quiz, 2 Matching, 3 Motivation, 4 Case, 5 Finish
   const progress = Math.round(
     (Math.min(step, totalScreens) / totalScreens) * 100
   );
@@ -141,16 +148,6 @@ export default function App() {
                   meine Fähigkeiten, Motivation und Arbeitsweise – spielerisch
                   und kompakt.
                 </p>
-
-                {/* Bewerberfoto im Startscreen */}
-                <div className="flex justify-center">
-                  <img
-                    src="/bewerberfoto.jpg"
-                    alt="Bewerberfoto"
-                    className="rounded-2xl shadow-md w-40 h-40 object-cover"
-                  />
-                </div>
-
                 <ul className="grid md:grid-cols-3 gap-3 text-slate-700">
                   <li className="p-3 rounded-2xl bg-white border">
                     Quiz: Wer bin ich?
@@ -187,16 +184,6 @@ export default function App() {
                 <CardTitle>Level 1 – Wer bin ich?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                
-                {/* Bewerberfoto im Quiz */}
-                <div className="flex justify-center">
-                  <img
-                    src="/bewerberfoto.jpg"
-                    alt="Bewerberfoto"
-                    className="rounded-2xl shadow-md w-32 h-32 object-cover mb-4"
-                  />
-                </div>
-
                 <p className="text-slate-700">{QUIZ[quizIdx].q}</p>
                 <div className="grid gap-3">
                   {QUIZ[quizIdx].options.map((o, i) => {
@@ -262,6 +249,228 @@ export default function App() {
 
                 <div className="text-xs text-slate-500">
                   Punktestand: {quizScore} / {QUIZ.length}
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 2 – Matching */}
+        {step === 2 && (
+          <Screen key="match">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Level 2 – Kompetenzen matchen</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Ordnen Sie die Kompetenz dem passenden Projektfeld zu.
+                </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    {SKILLS.map((s) => (
+                      <div
+                        key={s.name}
+                        className="p-3 rounded-2xl bg-white border"
+                      >
+                        <div className="text-sm text-slate-500">Kompetenz</div>
+                        <div className="font-medium">{s.name}</div>
+                        <div className="mt-3">
+                          <Input
+                            placeholder="Ziel/Projekt eingeben …"
+                            value={matches[s.name] ?? ""}
+                            onChange={(e) =>
+                              setMatches({ ...matches, [s.name]: e.target.value })
+                            }
+                            className="rounded-2xl"
+                          />
+                          <div className="text-xs text-slate-400 mt-1">
+                            Tipp: „{s.target}“
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border">
+                    <div className="text-sm text-slate-500 mb-2">
+                      Kompetenz-Radar (Selbsteinschätzung)
+                    </div>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart
+                          data={SKILLS.map((s) => ({
+                            subject: s.name,
+                            A: 80,
+                          }))}
+                        >
+                          <PolarGrid />
+                          <PolarAngleAxis dataKey="subject" />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                          <Radar
+                            name="Kompetenz"
+                            dataKey="A"
+                            stroke="#334155"
+                            fill="#334155"
+                            fillOpacity={0.3}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-2">
+                      Visualisierung exemplarisch.
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button className="rounded-2xl" onClick={next}>
+                    <ChevronRight className="mr-2 w-4 h-4" />
+                    Weiter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl"
+                    onClick={prev}
+                  >
+                    Zurück
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 3 – Motivation */}
+        {step === 3 && (
+          <Screen key="motivation">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Motivation – Warum Hochschule?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Ich möchte meine Selbständigkeit bewusst beenden, um meine
+                  Expertise langfristig in einem Team einzubringen – mit
+                  Verantwortung, Kontinuität und messbarer Wirkung in Lehre &
+                  Programmentwicklung.
+                </p>
+                <ul className="grid md:grid-cols-3 gap-3">
+                  {[
+                    "Praxisnahe Curricula",
+                    "Innovative Lehrformate",
+                    "Qualität & Wirkung",
+                  ].map((t) => (
+                    <li
+                      key={t}
+                      className="p-3 rounded-2xl bg-white border flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex gap-3">
+                  <Button className="rounded-2xl" onClick={next}>
+                    Weiter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl"
+                    onClick={prev}
+                  >
+                    Zurück
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 4 – Case */}
+        {step === 4 && (
+          <Screen key="case">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Mini-Case – So gehe ich vor</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    {CASES.map((c, i) => (
+                      <button
+                        key={c.title}
+                        onClick={() => setFocusCase(i)}
+                        className={`w-full text-left p-4 rounded-2xl border bg-white ${
+                          focusCase === i
+                            ? "border-slate-800"
+                            : "hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="font-medium">{c.title}</div>
+                        <div className="text-xs text-slate-500">
+                          Klicken zum Anzeigen der Schritte
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border min-h-[220px]">
+                    {focusCase === null ? (
+                      <p className="text-slate-500">
+                        Bitte links einen Case wählen.
+                      </p>
+                    ) : (
+                      <ol className="list-decimal ml-5 space-y-2">
+                        {CASES[focusCase].steps.map((s) => (
+                          <li key={s}>{s}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button className="rounded-2xl" onClick={next}>
+                    Abschließen <Trophy className="ml-2 w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl"
+                    onClick={prev}
+                  >
+                    Zurück
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Screen>
+        )}
+
+        {/* Step 5 – Finish */}
+        {step === 5 && (
+          <Screen key="finish">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Vielen Dank! 🎉</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-slate-700">
+                  Sie haben alle Level abgeschlossen. Falls Sie mögen, können
+                  Sie meine Kurzdaten exportieren oder mich direkt kontaktieren.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    className="rounded-2xl"
+                    onClick={() => exportProfile(matches, quizScore)}
+                  >
+                    <Download className="mr-2 w-4 h-4" /> Profil-Notizen
+                    exportieren (JSON)
+                  </Button>
+                  <a
+                    href="mailto:mail@bartholdy-qm.de"
+                    className="inline-flex"
+                  >
+                    <Button variant="secondary" className="rounded-2xl">
+                      <Mail className="mr-2 w-4 h-4" /> Kontakt aufnehmen
+                    </Button>
+                  </a>
                 </div>
               </CardContent>
             </Card>
