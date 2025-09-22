@@ -77,6 +77,8 @@ const CASES = [
   },
 ];
 
+
+
 // --- Helper -----------------------------------------------------------------
 const Screen = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -93,6 +95,17 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
 // --- Main App ---------------------------------------------------------------
 export default function App() {
   const [step, setStep] = useState(0);
+  // Recruiter Eingaben
+  const [recruiterScores, setRecruiterScores] = useState<Record<string, number>>({});
+
+  // Bewerber Selbsteinschätzung (fix)
+  const applicantScores: Record<string, number> = {
+    Didaktik: 80,
+    Digitalisierung: 70,
+   Qualitätsmanagement: 85,
+    Prozessmanagement: 75,
+    KI: 65,
+  };
 
   // Fix: 6 Screens (0–5)
   const totalScreens = 6;
@@ -266,86 +279,101 @@ export default function App() {
           </Screen>
         )}
 
-        {/* Step 2 – Matching */}
-        {step === 2 && (
-          <Screen key="match">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Level 2 – Kompetenzen matchen</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-slate-700">
-                  Ordnen Sie die Kompetenz dem passenden Projektfeld zu.
-                </p>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    {SKILLS.map((s) => (
-                      <div
-                        key={s.name}
-                        className="p-3 rounded-2xl bg-white border"
-                      >
-                        <div className="text-sm text-slate-500">Kompetenz</div>
-                        <div className="font-medium">{s.name}</div>
-                        <div className="mt-3">
-                          <Input
-                            placeholder="Ziel/Projekt eingeben …"
-                            value={matches[s.name] ?? ""}
-                            onChange={(e) =>
-                              setMatches({ ...matches, [s.name]: e.target.value })
-                            }
-                            className="rounded-2xl"
-                          />
-                          <div className="text-xs text-slate-400 mt-1">
-                            Tipp: „{s.target}“
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white border">
-                    <div className="text-sm text-slate-500 mb-2">
-                      Kompetenz-Radar (Selbsteinschätzung)
-                    </div>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart
-                          data={SKILLS.map((s) => ({
-                            subject: s.name,
-                            A: 80,
-                          }))}
-                        >
-                          <PolarGrid />
-                          <PolarAngleAxis dataKey="subject" />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                          <Radar
-                            name="Kompetenz"
-                            dataKey="A"
-                            stroke="#334155"
-                            fill="#334155"
-                            fillOpacity={0.3}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+{/* Step 2 – Matching */}
+{step === 2 && (
+  <Screen key="match">
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle>Level 2 – Kompetenzen matchen</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-slate-700">
+          Bitte schätzen Sie die Ausprägung der folgenden Kompetenzen auf einer Skala von 0 bis 100 ein.
+        </p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Linke Seite – Recruiter Input */}
+          <div className="space-y-6">
+            {SKILLS.map((s) => (
+              <div key={s.name} className="p-4 rounded-2xl bg-white border">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">{s.name}</span>
+                  <span className="text-sm text-slate-500">
+                    {recruiterScores[s.name] ?? 0}/100
+                  </span>
                 </div>
-                <div className="flex gap-3">
-                  <Button className="rounded-2xl" onClick={next}>
-                    <ChevronRight className="mr-2 w-4 h-4" />
-                    Weiter
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="rounded-2xl"
-                    onClick={prev}
-                  >
-                    Zurück
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Screen>
-        )}
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={10}
+                  value={recruiterScores[s.name] ?? 0}
+                  onChange={(e) =>
+                    setRecruiterScores({
+                      ...recruiterScores,
+                      [s.name]: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Rechte Seite – Radar Chart */}
+          <div className="p-4 rounded-2xl bg-white border">
+            <div className="text-sm text-slate-500 mb-2">
+              Kompetenz-Radar (Bewerber vs. Recruiter)
+            </div>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart
+                  outerRadius="80%"
+                  data={SKILLS.map((s) => ({
+                    subject: s.name,
+                    Bewerber: applicantScores[s.name],
+                    Recruiter: recruiterScores[s.name] ?? 0,
+                  }))}
+                >
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  {/* Bewerber-Kurve */}
+                  <Radar
+                    name="Bewerber"
+                    dataKey="Bewerber"
+                    stroke="#6366f1"
+                    fill="#6366f1"
+                    fillOpacity={0.3}
+                  />
+                  {/* Recruiter-Kurve */}
+                  <Radar
+                    name="Recruiter"
+                    dataKey="Recruiter"
+                    stroke="#f97316"
+                    fill="#f97316"
+                    fillOpacity={0.2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="text-xs text-slate-500 mt-2">
+              Blau = Bewerber (Selbsteinschätzung), Orange = Recruiter.
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Button className="rounded-2xl" onClick={next}>
+            <ChevronRight className="mr-2 w-4 h-4" />
+            Weiter
+          </Button>
+          <Button variant="ghost" className="rounded-2xl" onClick={prev}>
+            Zurück
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  </Screen>
+)}
 
         {/* Step 3 – Motivation */}
         {step === 3 && (
@@ -499,5 +527,7 @@ function exportProfile(matches: Record<string, string>, quizScore: number) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download =
-
+  a.download = "bewerbung-profile-notizen.json"; // 👈 fehlte in deinem Code
+  a.click();
+  URL.revokeObjectURL(url);
+}
