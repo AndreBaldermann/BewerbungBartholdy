@@ -95,6 +95,7 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
 // --- Main App ---------------------------------------------------------------
 export default function App() {
   const [step, setStep] = useState(0);
+
   // Recruiter Eingaben
   const [recruiterScores, setRecruiterScores] = useState<Record<string, number>>({});
 
@@ -102,10 +103,16 @@ export default function App() {
   const applicantScores: Record<string, number> = {
     Didaktik: 80,
     Digitalisierung: 70,
-   Qualitätsmanagement: 85,
+    Qualitätsmanagement: 85,
     Prozessmanagement: 75,
     KI: 65,
   };
+
+  // Prüfen, ob alle Slider mindestens einmal bewegt wurden
+  const allAdjusted = SKILLS.every(
+    (s) => recruiterScores[s.name] !== undefined && recruiterScores[s.name] > 0
+  );
+
 
   // Fix: 6 Screens (0–5)
   const totalScreens = 6;
@@ -322,7 +329,7 @@ export default function App() {
           {/* Rechte Seite – Radar Chart */}
           <div className="p-4 rounded-2xl bg-white border">
             <div className="text-sm text-slate-500 mb-2">
-              Kompetenz-Radar (Bewerber vs. Recruiter)
+              Kompetenz-Radar
             </div>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -337,15 +344,8 @@ export default function App() {
                   <PolarGrid />
                   <PolarAngleAxis dataKey="subject" />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  {/* Bewerber-Kurve */}
-                  <Radar
-                    name="Bewerber"
-                    dataKey="Bewerber"
-                    stroke="#6366f1"
-                    fill="#6366f1"
-                    fillOpacity={0.3}
-                  />
-                  {/* Recruiter-Kurve */}
+
+                  {/* Recruiter-Kurve – immer sichtbar */}
                   <Radar
                     name="Recruiter"
                     dataKey="Recruiter"
@@ -353,14 +353,26 @@ export default function App() {
                     fill="#f97316"
                     fillOpacity={0.2}
                   />
+
+                  {/* Bewerber-Kurve – erst wenn alle Slider benutzt */}
+                  {allAdjusted && (
+                    <Radar
+                      name="Bewerber"
+                      dataKey="Bewerber"
+                      stroke="#6366f1"
+                      fill="#6366f1"
+                      fillOpacity={0.3}
+                    />
+                  )}
                 </RadarChart>
               </ResponsiveContainer>
             </div>
             <div className="text-xs text-slate-500 mt-2">
-              Blau = Bewerber (Selbsteinschätzung), Orange = Recruiter.
+              Orange = Recruiter-Einschätzung. Blau = Bewerber (wird sichtbar, sobald alle Kompetenzen bewertet sind).
             </div>
           </div>
         </div>
+
         <div className="flex gap-3">
           <Button className="rounded-2xl" onClick={next}>
             <ChevronRight className="mr-2 w-4 h-4" />
@@ -374,6 +386,7 @@ export default function App() {
     </Card>
   </Screen>
 )}
+
 
         {/* Step 3 – Motivation */}
         {step === 3 && (
