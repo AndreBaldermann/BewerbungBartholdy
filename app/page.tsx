@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,10 +93,10 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
 // --- Main App ---------------------------------------------------------------
 export default function App() {
   const [step, setStep] = useState(0);
-  const totalScreens = 5;
-  const progress = Math.round(
-    (Math.min(step, totalScreens) / totalScreens) * 100
-  );
+
+  // 👉 Fix: es gibt 6 Screens (0–5)
+  const totalScreens = 6;
+  const progress = Math.round((step / (totalScreens - 1)) * 100);
 
   const [quizIdx, setQuizIdx] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
@@ -106,7 +106,7 @@ export default function App() {
   const [focusCase, setFocusCase] = useState<number | null>(null);
 
   const goto = (n: number) => setStep(n);
-  const next = () => setStep((s) => Math.min(s + 1, totalScreens));
+  const next = () => setStep((s) => Math.min(s + 1, totalScreens - 1));
   const prev = () => setStep((s) => Math.max(s - 1, 0));
 
   return (
@@ -142,7 +142,7 @@ export default function App() {
                   und kompakt.
                 </p>
 
-                {/* Bewerberfoto im Startscreen */}
+                {/* Bewerberfoto */}
                 <div className="flex justify-center">
                   <img
                     src="/bewerberfoto.jpg"
@@ -187,8 +187,7 @@ export default function App() {
                 <CardTitle>Level 1 – Wer bin ich?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                
-                {/* Bewerberfoto im Quiz */}
+                {/* Bewerberfoto */}
                 <div className="flex justify-center">
                   <img
                     src="/bewerberfoto.jpg"
@@ -267,6 +266,9 @@ export default function App() {
             </Card>
           </Screen>
         )}
+
+        {/* TODO: Step 2, 3, 4, 5 bleiben gleich wie bei dir */}
+        {/* ich habe nur totalScreens & Progress angepasst */}
       </AnimatePresence>
     </div>
   );
