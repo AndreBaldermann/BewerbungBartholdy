@@ -29,8 +29,8 @@ const QUIZ = [
   {
     q: "Wo habe ich die meiste Zeit gearbeitet?",
     options: [
-      { label: "Hochschule/Universität", correct: true },
       { label: "Industrie", correct: false },
+      { label: "Hochschule/Universität", correct: true },
       { label: "KMU", correct: false },
     ],
     explain:
@@ -39,9 +39,9 @@ const QUIZ = [
   {
     q: "Welches Thema prägt meine Arbeit besonders?",
     options: [
-      { label: "Prozess- & Qualitätsmanagement", correct: true },
       { label: "Event-Marketing", correct: false },
       { label: "Finanzprüfung", correct: false },
+      { label: "Prozess- & Qualitätsmanagement", correct: true },
     ],
     explain:
       "Praxisorientierte Qualität & kontinuierliche Verbesserung in Bildungsprogrammen.",
@@ -58,20 +58,20 @@ const QUIZ = [
   {
     q: "Wo setze ich KI ein?",
     options: [
-      { label: "Lernassistenz & Analytics", correct: true },
       { label: "Reisekostenabrechnung", correct: false },
+      { label: "Lernassistenz & Analytics", correct: true },
       { label: "Event-Tickets", correct: false },
     ],
-    explain: "Ich nutze KI in EdTech-Prototypen zur Lernunterstützung.",
+    explain: "Ich nutze KI für Prototypen und Lernunterstützung.",
   },
 ];
 
 const SKILLS = [
-  { name: "Didaktik", target: "Projekt Lehrkonzepte" },
-  { name: "Digitalisierung", target: "EdTech/AI Piloten" },
-  { name: "Qualitätsmanagement", target: "Akkreditierung/QM" },
-  { name: "Prozessmanagement", target: "Curriculum-Redesign" },
-  { name: "KI", target: "Lernassistent/Analytics" },
+  { name: "Konzeptentwicklung", target: "Projekt Lehrkonzepte" },
+  { name: "Qualitätssicherung", target: "EdTech/AI Piloten" },
+  { name: "Evaluation", target: "Akkreditierung/QM" },
+  { name: "Moderation_und_Organisation_von_Workshops", target: "Curriculum-Redesign" },
+  { name: "Schnittstellen_und_Projektmanagement", target: "Lernassistent/Analytics" },
 ];
 
 const CASES = [
@@ -121,11 +121,11 @@ export default function App() {
 
   // Bewerber Selbsteinschätzung (fix)
   const applicantScores: Record<string, number> = {
-    Didaktik: 80,
-    Digitalisierung: 70,
-    Qualitätsmanagement: 85,
-    Prozessmanagement: 75,
-    KI: 95,
+    Konzeptentwicklung: 95,
+    Qualitätssicherung: 90,
+    Evaluation: 80,
+    Moderation_und_Organisation_von_Workshops: 90,
+    Schnittstellen_und_Projektmanagement: 95,
   };
 
   // Prüfen, ob alle Slider mindestens einmal bewegt wurden
@@ -498,36 +498,41 @@ export default function App() {
           </Screen>
         )}
 
-        {/* Step 5 – Finish */}
-        {step === 5 && (
-          <Screen key="finish">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Vielen Dank! 🎉</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-slate-700">
-                  Sie haben alle Level abgeschlossen. Falls Sie mögen, können
-                  Sie meine Kurzdaten exportieren oder mich direkt kontaktieren.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    className="rounded-2xl"
-                    onClick={() => exportProfile(matches, quizScore)}
-                  >
-                    <Download className="mr-2 w-4 h-4" /> Profil-Notizen
-                    exportieren (JSON)
-                  </Button>
-                  <a href="mailto:mail@bartholdy-qm.de" className="inline-flex">
-                    <Button variant="secondary" className="rounded-2xl">
-                      <Mail className="mr-2 w-4 h-4" /> Kontakt aufnehmen
-                    </Button>
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </Screen>
-        )}
+{/* Step 5 – Finish */}
+{step === 5 && (
+  <Screen key="finish">
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle>Vielen Dank! 🎉</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-slate-700 text-center">
+          Sie haben alle Level abgeschlossen. Falls Sie mögen, können
+          Sie mich direkt kontaktieren.
+        </p>
+
+        {/* Bewerberfoto */}
+        <div className="flex justify-center">
+          <img
+            src="/bewerberfoto.jpg"
+            alt="Bewerberfoto"
+            className="rounded-2xl shadow-md w-40 h-40 object-cover"
+          />
+        </div>
+
+        {/* Kontakt-Button */}
+        <div className="flex justify-center">
+          <a href="mailto:mail@bartholdy-qm.de" className="inline-flex">
+            <Button variant="secondary" className="rounded-2xl">
+              <Mail className="mr-2 w-4 h-4" /> Kontakt aufnehmen
+            </Button>
+          </a>
+        </div>
+      </CardContent>
+    </Card>
+  </Screen>
+)}
+
       </AnimatePresence>
     </div>
   );
