@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,6 +77,8 @@ const CASES = [
   },
 ];
 
+
+
 // --- Helper -----------------------------------------------------------------
 const Screen = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -90,20 +92,31 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
-function useProgress(total: number, current: number) {
-  return useMemo(
-    () => Math.round(((current + 1) / total) * 100),
-    [total, current]
-  );
-}
-
 // --- Main App ---------------------------------------------------------------
 export default function App() {
-  const [step, setStep] = useState(0); // 0..n-1 screens plus finish
-  const totalScreens = 5; // 0 Start, 1 Quiz, 2 Matching, 3 Motivation, 4 Case, 5 Finish
-  const progress = Math.round(
-    (Math.min(step, totalScreens) / totalScreens) * 100
+  const [step, setStep] = useState(0);
+
+  // Recruiter Eingaben
+  const [recruiterScores, setRecruiterScores] = useState<Record<string, number>>({});
+
+  // Bewerber Selbsteinschätzung (fix)
+  const applicantScores: Record<string, number> = {
+    Didaktik: 80,
+    Digitalisierung: 70,
+    Qualitätsmanagement: 85,
+    Prozessmanagement: 75,
+    KI: 65,
+  };
+
+  // Prüfen, ob alle Slider mindestens einmal bewegt wurden
+  const allAdjusted = SKILLS.every(
+    (s) => recruiterScores[s.name] !== undefined && recruiterScores[s.name] > 0
   );
+
+
+  // Fix: 6 Screens (0–5)
+  const totalScreens = 6;
+  const progress = Math.round((step / (totalScreens - 1)) * 100);
 
   const [quizIdx, setQuizIdx] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
@@ -113,7 +126,7 @@ export default function App() {
   const [focusCase, setFocusCase] = useState<number | null>(null);
 
   const goto = (n: number) => setStep(n);
-  const next = () => setStep((s) => Math.min(s + 1, totalScreens));
+  const next = () => setStep((s) => Math.min(s + 1, totalScreens - 1));
   const prev = () => setStep((s) => Math.max(s - 1, 0));
 
   return (
@@ -148,6 +161,16 @@ export default function App() {
                   meine Fähigkeiten, Motivation und Arbeitsweise – spielerisch
                   und kompakt.
                 </p>
+
+                {/* Bewerberfoto */}
+                <div className="flex justify-center">
+                  <img
+                    src="/bewerberfoto.jpg"
+                    alt="Bewerberfoto"
+                    className="rounded-2xl shadow-md w-40 h-40 object-cover"
+                  />
+                </div>
+
                 <ul className="grid md:grid-cols-3 gap-3 text-slate-700">
                   <li className="p-3 rounded-2xl bg-white border">
                     Quiz: Wer bin ich?
@@ -184,6 +207,15 @@ export default function App() {
                 <CardTitle>Level 1 – Wer bin ich?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Bewerberfoto */}
+                <div className="flex justify-center">
+                  <img
+                    src="/bewerberfoto.jpg"
+                    alt="Bewerberfoto"
+                    className="rounded-2xl shadow-md w-32 h-32 object-cover mb-4"
+                  />
+                </div>
+
                 <p className="text-slate-700">{QUIZ[quizIdx].q}</p>
                 <div className="grid gap-3">
                   {QUIZ[quizIdx].options.map((o, i) => {
@@ -226,8 +258,7 @@ export default function App() {
                           const chosen = QUIZ[quizIdx].options.find(
                             (o) => o.label === selected
                           );
-                          if (chosen?.correct)
-                            setQuizScore((s) => s + 1);
+                          if (chosen?.correct) setQuizScore((s) => s + 1);
                           setSelected(null);
                           if (quizIdx < QUIZ.length - 1)
                             setQuizIdx((i) => i + 1);
@@ -255,89 +286,107 @@ export default function App() {
           </Screen>
         )}
 
-        {/* Step 2 – Matching */}
-        {step === 2 && (
-          <Screen key="match">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Level 2 – Kompetenzen matchen</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-slate-700">
-                  Ordnen Sie die Kompetenz dem passenden Projektfeld zu.
-                </p>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    {SKILLS.map((s) => (
-                      <div
-                        key={s.name}
-                        className="p-3 rounded-2xl bg-white border"
-                      >
-                        <div className="text-sm text-slate-500">Kompetenz</div>
-                        <div className="font-medium">{s.name}</div>
-                        <div className="mt-3">
-                          <Input
-                            placeholder="Ziel/Projekt eingeben …"
-                            value={matches[s.name] ?? ""}
-                            onChange={(e) =>
-                              setMatches({ ...matches, [s.name]: e.target.value })
-                            }
-                            className="rounded-2xl"
-                          />
-                          <div className="text-xs text-slate-400 mt-1">
-                            Tipp: „{s.target}“
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white border">
-                    <div className="text-sm text-slate-500 mb-2">
-                      Kompetenz-Radar (Selbsteinschätzung)
-                    </div>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart
-                          data={SKILLS.map((s) => ({
-                            subject: s.name,
-                            A: 80,
-                          }))}
-                        >
-                          <PolarGrid />
-                          <PolarAngleAxis dataKey="subject" />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                          <Radar
-                            name="Kompetenz"
-                            dataKey="A"
-                            stroke="#334155"
-                            fill="#334155"
-                            fillOpacity={0.3}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="text-xs text-slate-500 mt-2">
-                      Visualisierung exemplarisch.
-                    </div>
-                  </div>
+{/* Step 2 – Matching */}
+{step === 2 && (
+  <Screen key="match">
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle>Level 2 – Kompetenzen matchen</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-slate-700">
+          Bitte schätzen Sie die Ausprägung der folgenden Kompetenzen auf einer Skala von 0 bis 100 ein.
+        </p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Linke Seite – Recruiter Input */}
+          <div className="space-y-6">
+            {SKILLS.map((s) => (
+              <div key={s.name} className="p-4 rounded-2xl bg-white border">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">{s.name}</span>
+                  <span className="text-sm text-slate-500">
+                    {recruiterScores[s.name] ?? 0}/100
+                  </span>
                 </div>
-                <div className="flex gap-3">
-                  <Button className="rounded-2xl" onClick={next}>
-                    <ChevronRight className="mr-2 w-4 h-4" />
-                    Weiter
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="rounded-2xl"
-                    onClick={prev}
-                  >
-                    Zurück
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Screen>
-        )}
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={10}
+                  value={recruiterScores[s.name] ?? 0}
+                  onChange={(e) =>
+                    setRecruiterScores({
+                      ...recruiterScores,
+                      [s.name]: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Rechte Seite – Radar Chart */}
+          <div className="p-4 rounded-2xl bg-white border">
+            <div className="text-sm text-slate-500 mb-2">
+              Kompetenz-Radar
+            </div>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart
+                  outerRadius="80%"
+                  data={SKILLS.map((s) => ({
+                    subject: s.name,
+                    Bewerber: applicantScores[s.name],
+                    Recruiter: recruiterScores[s.name] ?? 0,
+                  }))}
+                >
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+
+                  {/* Recruiter-Kurve – immer sichtbar */}
+                  <Radar
+                    name="Recruiter"
+                    dataKey="Recruiter"
+                    stroke="#f97316"
+                    fill="#f97316"
+                    fillOpacity={0.2}
+                  />
+
+                  {/* Bewerber-Kurve – erst wenn alle Slider benutzt */}
+                  {allAdjusted && (
+                    <Radar
+                      name="Bewerber"
+                      dataKey="Bewerber"
+                      stroke="#6366f1"
+                      fill="#6366f1"
+                      fillOpacity={0.3}
+                    />
+                  )}
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="text-xs text-slate-500 mt-2">
+              Orange = Recruiter-Einschätzung. Blau = Bewerber (wird sichtbar, sobald alle Kompetenzen bewertet sind).
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button className="rounded-2xl" onClick={next}>
+            <ChevronRight className="mr-2 w-4 h-4" />
+            Weiter
+          </Button>
+          <Button variant="ghost" className="rounded-2xl" onClick={prev}>
+            Zurück
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  </Screen>
+)}
+
 
         {/* Step 3 – Motivation */}
         {step === 3 && (
@@ -463,10 +512,7 @@ export default function App() {
                     <Download className="mr-2 w-4 h-4" /> Profil-Notizen
                     exportieren (JSON)
                   </Button>
-                  <a
-                    href="mailto:mail@bartholdy-qm.de"
-                    className="inline-flex"
-                  >
+                  <a href="mailto:mail@bartholdy-qm.de" className="inline-flex">
                     <Button variant="secondary" className="rounded-2xl">
                       <Mail className="mr-2 w-4 h-4" /> Kontakt aufnehmen
                     </Button>
@@ -494,8 +540,7 @@ function exportProfile(matches: Record<string, string>, quizScore: number) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "bewerbung-profile-notizen.json";
+  a.download = "bewerbung-profile-notizen.json"; // 👈 fehlte in deinem Code
   a.click();
   URL.revokeObjectURL(url);
 }
-

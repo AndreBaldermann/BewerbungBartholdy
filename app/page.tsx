@@ -30,8 +30,8 @@ const QUIZ = [
     q: "Wo habe ich die meiste Zeit gearbeitet?",
     options: [
       { label: "Hochschule/Universität", correct: true },
-      { label: "Start-up-Inkubator", correct: false },
-      { label: "Beratung ohne Lehre", correct: false },
+      { label: "Industrie", correct: false },
+      { label: "KMU", correct: false },
     ],
     explain:
       "Schwerpunkt in Lehre & Programmentwicklung – Verbindung von Wissenschaft & Praxis.",
@@ -46,6 +46,24 @@ const QUIZ = [
     explain:
       "Praxisorientierte Qualität & kontinuierliche Verbesserung in Bildungsprogrammen.",
   },
+  {
+    q: "Welche Kompetenz ist meine Stärke?",
+    options: [
+      { label: "Didaktik", correct: true },
+      { label: "Finanzen", correct: false },
+      { label: "Event-Planung", correct: false },
+    ],
+    explain: "Didaktik prägt meine Lehrkonzepte und Programme.",
+  },
+  {
+    q: "Wo setze ich KI ein?",
+    options: [
+      { label: "Lernassistenz & Analytics", correct: true },
+      { label: "Reisekostenabrechnung", correct: false },
+      { label: "Event-Tickets", correct: false },
+    ],
+    explain: "Ich nutze KI in EdTech-Prototypen zur Lernunterstützung.",
+  },
 ];
 
 const SKILLS = [
@@ -58,21 +76,23 @@ const SKILLS = [
 
 const CASES = [
   {
-    title: "Studiengang praxisnäher gestalten",
+    title: "Flexibles, bausteinartiges Curriculum",
     steps: [
-      "Ist-Analyse & Stakeholder-Interviews",
-      "Challenge-Based-Module entwickeln",
-      "Pilot durchführen & Feedback auswerten",
-      "Qualitätsschleife etablieren (PDSA)",
+      "Recherche – internationale Modelle, Microcredentials, rechtliche Vorgaben",
+      "Analyse – Schnittstellen zwischen Studiengängen, Modulen, Weiterbildungen",
+      "Konzeptentwicklung – Bausteinmodell (Module ↔ Microcredentials ↔ Weiterbildung)",
+      "Pilotierung – Test in ausgewähltem Fachbereich, Feedback einholen",
+      "Transfer & Skalierung – Anpassung, hochschulweite Einführung",
     ],
   },
   {
-    title: "Digitales Lernformat aufbauen",
+    title: "Schnittstellenmanagement",
     steps: [
-      "Use-Cases & Lernziele schärfen",
-      "Micro-Learning + KI-Coach prototypen",
-      "Learning Analytics definieren",
-      "Skalierung & Governance klären",
+      "Schnittstellen identifizieren",
+      "Bedarfe analysieren (Studierende, Lernbegleitung)",
+      "Koordination mit Projekten/Fachbereichen",
+      "Integration von Curricula & Lernbegleitung",
+      "Evaluation & Anpassung",
     ],
   },
 ];
@@ -105,7 +125,7 @@ export default function App() {
     Digitalisierung: 70,
     Qualitätsmanagement: 85,
     Prozessmanagement: 75,
-    KI: 65,
+    KI: 95,
   };
 
   // Prüfen, ob alle Slider mindestens einmal bewegt wurden
@@ -134,9 +154,9 @@ export default function App() {
       <div className="max-w-5xl mx-auto mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-6 h-6" />
-          <h1 className="text-2xl font-semibold">Bewerbungs-Lernapp</h1>
+          <h1 className="text-2xl font-semibold">Bewerbung</h1>
           <Badge variant="secondary" className="ml-2 rounded-2xl">
-            Prototyp
+            
           </Badge>
         </div>
         <div className="w-64">
@@ -148,59 +168,48 @@ export default function App() {
       </div>
 
       <AnimatePresence mode="wait">
-        {/* Step 0 – Start */}
-        {step === 0 && (
-          <Screen key="start">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Willkommen! 👋</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-slate-700">
-                  Schön, dass Sie da sind. In dieser kleinen App entdecken Sie
-                  meine Fähigkeiten, Motivation und Arbeitsweise – spielerisch
-                  und kompakt.
-                </p>
+{/* Step 0 – Start */}
+{step === 0 && (
+  <Screen key="start">
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle>Willkommen! 👋</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-slate-700">
+          Schön, dass Sie da sind. In dieser kleinen App entdecken Sie
+          meine Fähigkeiten, Motivation und Arbeitsweise – spielerisch
+          und kompakt.
+        </p>
 
-                {/* Bewerberfoto */}
-                <div className="flex justify-center">
-                  <img
-                    src="/bewerberfoto.jpg"
-                    alt="Bewerberfoto"
-                    className="rounded-2xl shadow-md w-40 h-40 object-cover"
-                  />
-                </div>
+        {/* Bewerberfoto */}
+        <div className="flex flex-col items-center">
+          <img
+            src="/bewerberfoto.jpg"
+            alt="Bewerberfoto"
+            className="rounded-2xl shadow-md w-40 h-40 object-cover"
+          />
+<p className="mt-4 text-lg font-semibold text-slate-800 text-center">
+  Tanja Bartholdy <br />
+  Tel.: 0178 514 608 95 <br />
+  Email: mail@bartholdy-qm.de
+</p>
 
-                <ul className="grid md:grid-cols-3 gap-3 text-slate-700">
-                  <li className="p-3 rounded-2xl bg-white border">
-                    Quiz: Wer bin ich?
-                  </li>
-                  <li className="p-3 rounded-2xl bg-white border">
-                    Matching: Kompetenzen zu Projekten
-                  </li>
-                  <li className="p-3 rounded-2xl bg-white border">
-                    Mini-Case: Vorgehensweise live
-                  </li>
-                </ul>
-                <div className="flex gap-3">
-                  <Button onClick={next} className="rounded-2xl">
-                    Los geht’s <ChevronRight className="ml-2 w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => goto(3)}
-                    className="rounded-2xl"
-                  >
-                    Motivation zuerst
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Screen>
-        )}
+        </div>
+
+        <div className="flex gap-3">
+          <Button onClick={next} className="rounded-2xl">
+            Los geht’s <ChevronRight className="ml-2 w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  </Screen>
+)}
+
 
         {/* Step 1 – Quiz */}
-        {step === 1 && (
+        {step === 2 && (
           <Screen key="quiz">
             <Card className="shadow-sm">
               <CardHeader>
@@ -287,7 +296,7 @@ export default function App() {
         )}
 
 {/* Step 2 – Matching */}
-{step === 2 && (
+{step === 3 && (
   <Screen key="match">
     <Card className="shadow-sm">
       <CardHeader>
@@ -343,7 +352,7 @@ export default function App() {
                 >
                   <PolarGrid />
                   <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  
 
                   {/* Recruiter-Kurve – immer sichtbar */}
                   <Radar
@@ -389,18 +398,15 @@ export default function App() {
 
 
         {/* Step 3 – Motivation */}
-        {step === 3 && (
+        {step === 1 && (
           <Screen key="motivation">
             <Card className="shadow-sm">
               <CardHeader>
-                <CardTitle>Motivation – Warum Hochschule?</CardTitle>
+                <CardTitle>Motivation – Warum Bielefeld?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-slate-700">
-                  Ich möchte meine Selbständigkeit bewusst beenden, um meine
-                  Expertise langfristig in einem Team einzubringen – mit
-                  Verantwortung, Kontinuität und messbarer Wirkung in Lehre &
-                  Programmentwicklung.
+                  Mit dem Schritt aus der Selbstständigkeit an die Hochschule Bielefeld möchte ich meine Expertise in ein innovatives Umfeld einbringen und im Team die praxisnahe Weiterentwicklung von Studienangeboten aktiv mitgestalten.
                 </p>
                 <ul className="grid md:grid-cols-3 gap-3">
                   {[
